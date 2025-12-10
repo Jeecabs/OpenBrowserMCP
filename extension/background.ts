@@ -12,7 +12,8 @@ import type {
   ErrorResponse,
   InternalMessage,
   InternalResponse,
-  MessageType
+  MessageType,
+  SnapshotParams
 } from "~lib/protocol";
 import { ErrorCode } from "~lib/protocol";
 
@@ -150,6 +151,21 @@ function disconnect(): void {
 }
 
 /**
+ * Capture screenshot of the current tab
+ */
+async function captureScreenshot(tabId: number): Promise<string | null> {
+  try {
+    const dataUrl = await chrome.tabs.captureVisibleTab(undefined, {
+      format: "png"
+    });
+    return dataUrl;
+  } catch (error) {
+    console.error("[Background] Failed to capture screenshot:", error);
+    return null;
+  }
+}
+
+/**
  * Handle incoming message from server
  */
 async function handleServerMessage(data: string): Promise<void> {
@@ -195,6 +211,19 @@ async function handleServerMessage(data: string): Promise<void> {
 
     // Clean up pending request
     pendingRequests.delete(request.id);
+
+    // For snapshot requests, capture screenshot if enabled (default: true)
+    if (request.method === "snapshot" && "result" in response) {
+      const params = (request.params || {}) as SnapshotParams;
+      const shouldScreenshot = params.screenshot !== false; // Default true
+
+      if (shouldScreenshot && connectedTabId) {
+        const screenshot = await captureScreenshot(connectedTabId);
+        if (screenshot && response.result) {
+          (response.result as any).screenshot = screenshot;
+        }
+      }
+    }
 
     // Send response to server
     sendResponse(response);

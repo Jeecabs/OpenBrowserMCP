@@ -38,23 +38,37 @@ const ElementSelectorSchema = z.union([
 // Register tools
 server.tool(
   "snapshot",
-  "Capture the current page's accessibility tree (ARIA snapshot) in TOON format. Returns the page URL, title, and structured element tree.",
-  {},
-  async () => {
-    const result = await context.sendRpcRequest<SnapshotResult>("snapshot", {});
-    return {
-      content: [
-        {
-          type: "text",
-          text: `- Page URL: ${result.url}
+  "Capture the current page's accessibility tree (ARIA snapshot) and screenshot. Returns the page URL, title, structured element tree, and a PNG screenshot.",
+  {
+    screenshot: z.boolean().optional().default(true).describe("Whether to capture a screenshot (default: true)"),
+  },
+  async ({ screenshot }) => {
+    const result = await context.sendRpcRequest<SnapshotResult>("snapshot", { screenshot });
+
+    const content: Array<{ type: "text"; text: string } | { type: "image"; data: string; mimeType: string }> = [
+      {
+        type: "text",
+        text: `- Page URL: ${result.url}
 - Page Title: ${result.title}
 - ARIA Snapshot:
 \`\`\`
 ${result.aria}
 \`\`\``,
-        },
-      ],
-    };
+      },
+    ];
+
+    // Add screenshot if present
+    if (result.screenshot) {
+      // Remove data URL prefix if present (e.g., "data:image/png;base64,")
+      const base64Data = result.screenshot.replace(/^data:image\/png;base64,/, "");
+      content.push({
+        type: "image",
+        data: base64Data,
+        mimeType: "image/png",
+      });
+    }
+
+    return { content };
   }
 );
 

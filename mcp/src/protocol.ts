@@ -71,7 +71,9 @@ export type JsonRpcResponse = z.infer<typeof JsonRpcResponseSchema>;
 // Tool Parameter Types
 // ============================================================================
 
-export const SnapshotParamsSchema = z.object({});
+export const SnapshotParamsSchema = z.object({
+  screenshot: z.boolean().optional().default(true),
+});
 
 export const NavigateParamsSchema = z.object({
   url: z.string(),
@@ -101,6 +103,7 @@ export const SnapshotResultSchema = z.object({
   url: z.string(),
   title: z.string(),
   aria: z.string(),
+  screenshot: z.string().optional(), // Base64 PNG data URL
 });
 
 export const NavigateResultSchema = z.object({

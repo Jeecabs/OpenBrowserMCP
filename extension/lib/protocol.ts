@@ -11,7 +11,9 @@ export interface Request {
   params: Record<string, any>;
 }
 
-export interface SnapshotParams {}
+export interface SnapshotParams {
+  screenshot?: boolean; // Default true - capture screenshot
+}
 
 export interface NavigateParams {
   url: string;
@@ -73,6 +75,14 @@ export interface AriaSnapshot {
   url: string;
   title: string;
   elements: AriaElement[];
+}
+
+// Snapshot response (sent to MCP server)
+export interface SnapshotResult {
+  url: string;
+  title: string;
+  aria: string;
+  screenshot?: string; // Base64 PNG data URL
 }
 
 // Navigate response
