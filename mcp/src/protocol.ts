@@ -49,7 +49,7 @@ export const ErrorCodeSchema = z.nativeEnum(ErrorCode);
 export const JsonRpcRequestSchema = z.object({
   id: z.string(),
   method: z.string(),
-  params: z.record(z.unknown()),
+  params: z.record(z.string(), z.unknown()),
 });
 
 export const JsonRpcErrorSchema = z.object({
